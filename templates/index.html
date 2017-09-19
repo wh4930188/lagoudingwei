@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>某拉职位定位</title>
+    <!--引用百度地图API-->
+    <script type="text/javascript"
+            src="http://api.map.baidu.com/api?v=2.0&ak=x20n1iOcnCp6qMHdxpmgM7a1L33Dzsxa"></script>
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <link href="../static/styles/common.css" rel="stylesheet">
+</head>
+
+<body>
+<!--百度地图容器-->
+<div style="width:100%;height:100%;border:#ccc solid 1px;font-size:12px" id="map"></div>
+
+</body>
+<script type="text/javascript">
+    (function () {
+        $(function () {
+            //创建和初始化地图函数：
+            function initMap() {
+                createMap();//创建地图
+                setMapEvent();//设置地图事件
+                addMapControl();//向地图添加控件
+                addMapOverlay();//向地图添加覆盖物
+            }
+
+            function createMap() {
+                map = new BMap.Map("map");
+                map.centerAndZoom(new BMap.Point(114.054095, 22.551657), 14);
+            }
+
+            function setMapEvent() {
+                map.enableScrollWheelZoom();
+                map.enableKeyboard();
+                map.enableDragging();
+                map.enableDoubleClickZoom()
+            }
+
+            function addClickHandler(target, window) {
+                target.addEventListener("click", function () {
+                    target.openInfoWindow(window);
+                });
+            }
+
+            function addMapOverlay() {
+            }
+
+            //向地图添加控件
+            function addMapControl() {
+                var scaleControl = new BMap.ScaleControl({anchor: BMAP_ANCHOR_BOTTOM_LEFT});
+                scaleControl.setUnit(BMAP_UNIT_IMPERIAL);
+                map.addControl(scaleControl);
+                var navControl = new BMap.NavigationControl({
+                    anchor: BMAP_ANCHOR_TOP_LEFT,
+                    type: BMAP_NAVIGATION_CONTROL_LARGE
+                });
+                map.addControl(navControl);
+                var overviewControl = new BMap.OverviewMapControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT, isOpen: true});
+                map.addControl(overviewControl);
+            }
+
+            var map;
+            initMap();
+
+            //---------------------------------------------------------------------------
+            addMarker = function (job) {
+                var infoWindow, marker, sContent;
+                point = new BMap.Point(job['lng'], job['lat']);
+                marker = new BMap.Marker(point);  // 创建标注
+                map.addOverlay(marker);  // 将标注添加到地图中
+                // 设置信息窗口内容
+                sContent = "<p>职位：" + job.title + " <br/> 公司：" + job.company_name + " " + job.company_size + " <br/> 资金：" + job.stage + " <br/> 地址：" + job.location + " <br/> 待遇：" + job.salary + " <br/> 来源：<a href='http://www.lagou.com/jobs/" + job.jid + ".html'>拉勾网</a> </p>";
+                infoWindow = new BMap.InfoWindow(sContent);  // 创建信息窗口对象
+                // 绑定点击事件
+                return marker.addEventListener("click", function () {
+                    this.openInfoWindow(infoWindow);  // 开启窗口信息
+                    //return document.getElementById("imgDemo").onload = function() {
+                    //    return infoWindow.redrow();
+                    //};
+                });
+            };
+            return $.getJSON('/api/jobs').success(function (data) {
+                var i, job, len, ref, results;
+                if ((data.error == null) || data.error != 0) {
+                    return true;
+                }
+                ref = data["items"];
+                results = [];
+                for (i = 0, len = ref.length; i < len; i++) {
+                    job = ref[i];
+                    results.push(addMarker(job));
+                }
+                return results;
+            });
+        });
+    })();
+</script>
+</html>
